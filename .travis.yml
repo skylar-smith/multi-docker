@@ -1,0 +1,20 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t savvyskylark/react-test -f ./client/Dockerfile.dev ./client
+scripts:
+    - docker run -e CI=true savvyskylark/react-test npm test
+after_success:
+    - docker build -t savvyskylark/multi-client ./client
+    - docker build -t savvyskylark/multi-nginx ./nginx
+    - docker build -t savvyskylark/multi-server ./server
+    - docker build -t savvyskylark/multi-worker ./worker
+    # Log in to the docker cli
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # Take those and push them to dockerhub
+    - docker push savvyskylark/multi-client
+    - docker push savvyskylark/multi-nginx
+    - docker push savvyskylark/multi-server
+    - docker push savvyskylark/multi-worker
